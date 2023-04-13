@@ -509,7 +509,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         # restore opts to original state
         if p.override_settings_restore_afterwards:
             for k, v in stored_opts.items():
-                if changed[k]:
+                if k in changed and changed[k]:
                     setattr(opts, k, v)
                     if k == 'sd_model_checkpoint':
                         sd_models.reload_model_weights()
