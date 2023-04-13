@@ -100,7 +100,7 @@ def txt2img_image_conditioning(sd_model, x, width, height):
         # Pretty sure we can just make this a 1x1 image since its not going to be used besides its batch size.
         return x.new_zeros(x.shape[0], 5, 1, 1, dtype=x.dtype, device=x.device)
 
-
+₩
 class StableDiffusionProcessing:
     """
     The first set of paramaters: sd_models -> do_not_reload_embeddings represent the minimum required to create a StableDiffusionProcessing
@@ -490,15 +490,18 @@ def create_infotext(p, all_prompts, all_seeds, all_subseeds, comments=None, iter
 def process_images(p: StableDiffusionProcessing) -> Processed:
     stored_opts = {k: opts.data[k] for k in p.override_settings.keys()}
 
+    changed = {}
     try:
         for k, v in p.override_settings.items():
-            setattr(opts, k, v)
+            if opts[k] != v:
+                setattr(opts, k, v)
+                changed[k] = True
 
-            if k == 'sd_model_checkpoint':
-                sd_models.reload_model_weights()
+                if k == 'sd_model_checkpoint':
+                    sd_models.reload_model_weights()
 
-            if k == 'sd_vae':
-                sd_vae.reload_vae_weights()
+                if k == 'sd_vae':
+                    sd_vae.reload_vae_weights()
 
         res = process_images_inner(p)
 
@@ -506,12 +509,13 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         # restore opts to original state
         if p.override_settings_restore_afterwards:
             for k, v in stored_opts.items():
-                setattr(opts, k, v)
-                if k == 'sd_model_checkpoint':
-                    sd_models.reload_model_weights()
+                if changed[k]:
+                    setattr(opts, k, v)
+                    if k == 'sd_model_checkpoint':
+                        sd_models.reload_model_weights()
 
-                if k == 'sd_vae':
-                    sd_vae.reload_vae_weights()
+                    if k == 'sd_vae':
+                        sd_vae.reload_vae_weights()
 
     return res
 
