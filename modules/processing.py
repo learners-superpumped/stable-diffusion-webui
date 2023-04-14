@@ -501,6 +501,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                     sd_models.reload_model_weights()
 
                 if k == 'sd_vae':
+                    sd_vae.refresh_vae_list()
                     sd_vae.reload_vae_weights()
 
         res = process_images_inner(p)
