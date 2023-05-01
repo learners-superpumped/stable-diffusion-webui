@@ -501,6 +501,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
     try:
         for k, v in p.override_settings.items():
             if opts.data[k] != v:
+                print(opts.data[k], v)
                 setattr(opts, k, v)
                 changed[k] = True
 
@@ -513,6 +514,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
 
         res = process_images_inner(p)
 
+        print(changed)
     finally:
         # restore opts to original state
         if p.override_settings_restore_afterwards:
