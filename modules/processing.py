@@ -497,20 +497,19 @@ def create_infotext(p, all_prompts, all_seeds, all_subseeds, comments=None, iter
 def process_images(p: StableDiffusionProcessing) -> Processed:
     stored_opts = {k: opts.data[k] for k in p.override_settings.keys()}
 
+    changed = {}
     try:
-        # if no checkpoint override or the override checkpoint can't be found, remove override entry and load opts checkpoint
-        if sd_models.checkpoint_alisases.get(p.override_settings.get('sd_model_checkpoint')) is None:
-            p.override_settings.pop('sd_model_checkpoint', None)
-            sd_models.reload_model_weights()
-
         for k, v in p.override_settings.items():
-            setattr(opts, k, v)
+            if opts.data[k] != v:
+                setattr(opts, k, v)
+                changed[k] = True
 
-            if k == 'sd_model_checkpoint':
-                sd_models.reload_model_weights()
+                if k == 'sd_model_checkpoint':
+                    sd_models.reload_model_weights()
 
-            if k == 'sd_vae':
-                sd_vae.reload_vae_weights()
+                if k == 'sd_vae':
+                    sd_vae.refresh_vae_list()
+                    sd_vae.reload_vae_weights()
 
         res = process_images_inner(p)
 
@@ -518,10 +517,13 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
         # restore opts to original state
         if p.override_settings_restore_afterwards:
             for k, v in stored_opts.items():
-                setattr(opts, k, v)
+                if k in changed and changed[k]:
+                    setattr(opts, k, v)
+                    if k == 'sd_model_checkpoint':
+                        sd_models.reload_model_weights()
 
-                if k == 'sd_vae':
-                    sd_vae.reload_vae_weights()
+                    if k == 'sd_vae':
+                        sd_vae.reload_vae_weights()
 
     return res
 
