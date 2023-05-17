@@ -506,6 +506,7 @@ def process_images(p: StableDiffusionProcessing) -> Processed:
                 changed[k] = True
 
                 if k == 'sd_model_checkpoint':
+                    sd_models.list_models()
                     sd_models.reload_model_weights()
 
                 if k == 'sd_vae':
